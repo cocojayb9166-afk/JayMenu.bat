@@ -5,16 +5,21 @@ color 05
 chcp 65001 >nul
 cls
 
+:: =========================
+:: CONFIG
+:: =========================
 set DATA_DIR=%APPDATA%\JayMenu
-set HWID_FILE=%DATA_DIR%\hwid.dat
+set LICENSE_FILE=%DATA_DIR%\license.dat
 
 :: =========================
-:: GET HWID (MODERN)
+:: GET HWID (MODERN WINDOWS)
 :: =========================
-for /f "usebackq delims=" %%A in (`powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"`) do set HWID=%%A
+for /f "usebackq delims=" %%A in (`
+  powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"
+`) do set HWID=%%A
 
 :: =========================
-:: ENTER KEY
+:: ASK FOR KEY
 :: =========================
 echo ===============================
 echo        ENTER YOUR KEY
@@ -23,14 +28,14 @@ echo.
 set /p USER_KEY=Key: 
 
 :: =========================
-:: VALID KEYS
+:: VALID KEYS LIST
 :: =========================
-set VALID=0
-if "%USER_KEY%"=="3BQY-LTOR-8TRZ-E92R" set VALID=1
-if "%USER_KEY%"=="7FJR-K2LM-9TQX-B4ZD" set VALID=1
-if "%USER_KEY%"=="P8YW-L3NV-Q7CR-H5SK" set VALID=1
+set KEY_OK=0
+if "%USER_KEY%"=="3BQY-LTOR-8TRZ-E92R" set KEY_OK=1
+if "%USER_KEY%"=="7FJR-K2LM-9TQX-B4ZD" set KEY_OK=1
+if "%USER_KEY%"=="P8YW-L3NV-Q7CR-H5SK" set KEY_OK=1
 
-if "%VALID%"=="0" (
+if "%KEY_OK%"=="0" (
     echo.
     echo ❌ Invalid Key
     pause
@@ -38,12 +43,15 @@ if "%VALID%"=="0" (
 )
 
 :: =========================
-:: FIRST RUN HWID BIND
+:: CREATE DATA FOLDER
 :: =========================
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 
-if not exist "%HWID_FILE%" (
-    echo %HWID%>"%HWID_FILE%"
+:: =========================
+:: FIRST RUN = LOCK KEY
+:: =========================
+if not exist "%LICENSE_FILE%" (
+    echo %USER_KEY%|%HWID%>"%LICENSE_FILE%"
     echo.
     echo 🔒 Key locked to this PC
     timeout /t 1 >nul
@@ -51,9 +59,19 @@ if not exist "%HWID_FILE%" (
 )
 
 :: =========================
-:: CHECK HWID
+:: CHECK LICENSE
 :: =========================
-set /p SAVED_HWID=<"%HWID_FILE%"
+for /f "tokens=1,2 delims=|" %%A in (%LICENSE_FILE%) do (
+    set SAVED_KEY=%%A
+    set SAVED_HWID=%%B
+)
+
+if not "%USER_KEY%"=="%SAVED_KEY%" (
+    echo.
+    echo ❌ This key does not match this license
+    pause
+    exit
+)
 
 if not "%HWID%"=="%SAVED_HWID%" (
     echo.
@@ -81,11 +99,16 @@ echo    ██║   ██║   ██║   ██╔══██║██║╚
 echo    ██║   ██║   ██║   ██║  ██║██║ ╚████║
 echo    ╚═╝   ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝
 echo.
-echo [1] Test
+echo [1] Test Option
 echo [2] Exit
 echo.
 set /p choice=>
 
-if "%choice%"=="1" echo Test OK & pause & goto home
+if "%choice%"=="1" (
+    echo Test successful!
+    pause
+    goto home
+)
+
 if "%choice%"=="2" exit
 goto home
