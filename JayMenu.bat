@@ -12,10 +12,10 @@ set DATA_DIR=%APPDATA%\JayMenu
 set LICENSE_FILE=%DATA_DIR%\license.dat
 
 :: =========================
-:: GET HWID (MODERN WINDOWS)
+:: GET HWID (CONFIRMED WORKING)
 :: =========================
 for /f "usebackq delims=" %%A in (`
-  powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"
+ powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"
 `) do set HWID=%%A
 
 :: =========================
@@ -28,7 +28,7 @@ echo.
 set /p USER_KEY=Key: 
 
 :: =========================
-:: VALID KEYS LIST
+:: VALID KEYS
 :: =========================
 set KEY_OK=0
 if "%USER_KEY%"=="3BQY-LTOR-8TRZ-E92R" set KEY_OK=1
@@ -43,7 +43,7 @@ if "%KEY_OK%"=="0" (
 )
 
 :: =========================
-:: CREATE DATA FOLDER
+:: CREATE DATA DIR
 :: =========================
 if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 
