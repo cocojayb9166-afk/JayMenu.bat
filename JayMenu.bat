@@ -1,61 +1,70 @@
 @echo off
-title Private Loader
+setlocal EnableExtensions EnableDelayedExpansion
+title JayMenu
 color 05
 chcp 65001 >nul
 cls
 
+set DATA_DIR=%APPDATA%\JayMenu
+set HWID_FILE=%DATA_DIR%\hwid.dat
+
 :: =========================
-:: GET HWID
+:: GET HWID (MODERN)
 :: =========================
-for /f "tokens=2 delims==" %%A in (
- 'wmic csproduct get uuid /value'
-) do set HWID=%%A
-set HWID=%HWID: =%
+for /f "usebackq delims=" %%A in (`powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"`) do set HWID=%%A
 
 :: =========================
 :: ENTER KEY
 :: =========================
-echo Enter Your Key
+echo ===============================
+echo        ENTER YOUR KEY
+echo ===============================
 echo.
-set /p USER_KEY=
+set /p USER_KEY=Key: 
 
 :: =========================
-:: KEY + HWID CHECK
+:: VALID KEYS
 :: =========================
+set VALID=0
+if "%USER_KEY%"=="3BQY-LTOR-8TRZ-E92R" set VALID=1
+if "%USER_KEY%"=="7FJR-K2LM-9TQX-B4ZD" set VALID=1
+if "%USER_KEY%"=="P8YW-L3NV-Q7CR-H5SK" set VALID=1
 
-:: Key 1
-if "%USER_KEY%"=="3BQY-LTOR-8TRZ-E92R" (
-    if "%HWID%"=="PUT-HWID-HERE-1" goto ACCESS_GRANTED
-    goto HWID_FAIL
+if "%VALID%"=="0" (
+    echo.
+    echo ❌ Invalid Key
+    pause
+    exit
 )
 
-:: Key 2
-if "%USER_KEY%"=="7FJR-K2LM-9TQX-B4ZD" (
-    if "%HWID%"=="PUT-HWID-HERE-2" goto ACCESS_GRANTED
-    goto HWID_FAIL
+:: =========================
+:: FIRST RUN HWID BIND
+:: =========================
+if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
+
+if not exist "%HWID_FILE%" (
+    echo %HWID%>"%HWID_FILE%"
+    echo.
+    echo 🔒 Key locked to this PC
+    timeout /t 1 >nul
+    goto ACCESS_GRANTED
 )
 
-:: Key 3
-if "%USER_KEY%"=="P8YW-L3NV-Q7CR-H5SK" (
-    if "%HWID%"=="PUT-HWID-HERE-3" goto ACCESS_GRANTED
-    goto HWID_FAIL
+:: =========================
+:: CHECK HWID
+:: =========================
+set /p SAVED_HWID=<"%HWID_FILE%"
+
+if not "%HWID%"=="%SAVED_HWID%" (
+    echo.
+    echo ❌ This key is already used on another PC
+    pause
+    exit
 )
-
-:: No key matched
-echo.
-echo Invalid Key
-pause
-exit
-
-:HWID_FAIL
-echo.
-echo This key is not authorized for this PC
-pause
-exit
 
 :ACCESS_GRANTED
 echo.
-echo Access Granted
+echo ✅ Access Granted
 timeout /t 1 >nul
 goto home
 
@@ -64,7 +73,7 @@ goto home
 :: =========================
 :home
 cls
-title Private
+title JayMenu
 echo ████████╗██╗████████╗ █████╗ ███╗   ██╗
 echo ╚══██╔══╝██║╚══██╔══╝██╔══██╗████╗  ██║
 echo    ██║   ██║   ██║   ███████║██╔██╗ ██║
