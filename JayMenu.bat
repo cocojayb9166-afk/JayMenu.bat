@@ -5,14 +5,11 @@ color 05
 chcp 65001 >nul
 cls
 
-:: =========================
-:: CONFIG
-:: =========================
 set DATA_DIR=%APPDATA%\JayMenu
 set LICENSE_FILE=%DATA_DIR%\license.dat
 
 :: =========================
-:: GET HWID (CONFIRMED WORKING)
+:: GET HWID (WORKING)
 :: =========================
 for /f "usebackq delims=" %%A in (`
  powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"
@@ -51,7 +48,7 @@ if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 :: FIRST RUN = LOCK KEY
 :: =========================
 if not exist "%LICENSE_FILE%" (
-    echo %USER_KEY%|%HWID%>"%LICENSE_FILE%"
+    echo %USER_KEY%^|%HWID%>"%LICENSE_FILE%"
     echo.
     echo 🔒 Key locked to this PC
     timeout /t 1 >nul
@@ -61,7 +58,7 @@ if not exist "%LICENSE_FILE%" (
 :: =========================
 :: CHECK LICENSE
 :: =========================
-for /f "tokens=1,2 delims=|" %%A in (%LICENSE_FILE%) do (
+for /f "tokens=1,2 delims=|" %%A in ("%LICENSE_FILE%") do (
     set SAVED_KEY=%%A
     set SAVED_HWID=%%B
 )
